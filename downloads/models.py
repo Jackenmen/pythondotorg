@@ -269,15 +269,20 @@ def purge_fastly_download_pages(sender, instance, **kwargs):
 
     # Only purge on published instances
     if instance.is_published:
+        version = instance.get_version()
+        # start from 3rd character to return location of the second dot
+        major_version = version and version[:version.find('.', 2)]
         # Purge our common pages
         purge_url('/downloads/')
         purge_url('/downloads/latest/python2/')
         purge_url('/downloads/latest/python3/')
+        if major_version is not None:
+            purge_url(f'/downloads/latest/python{major_version}/')
         purge_url('/downloads/macos/')
         purge_url('/downloads/source/')
         purge_url('/downloads/windows/')
         purge_url('/ftp/python/')
-        if instance.get_version() is not None:
+        if version is not None:
             purge_url(f'/ftp/python/{instance.get_version()}/')
         # See issue #584 for details
         purge_url('/box/supernav-python-downloads/')

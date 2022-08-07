@@ -26,8 +26,14 @@ class ReleaseQuerySet(QuerySet):
     def latest_python2(self):
         return self.python2().filter(is_latest=True)
 
-    def latest_python3(self):
-        return self.python3().filter(is_latest=True)
+    def latest_python3(self, major_version='', *, with_binaries=True):
+        if major_version and major_version != '3':
+            qs = self.python3().filter(pre_release=False, name__startswith=f'Python {major_version}.')
+            if not with_binaries:
+                qs = qs.filter(releasefile__is_source=False)
+            return qs.order_by('-release_date')[:1]
+        else:
+            return self.python3().filter(is_latest=True)
 
     def pre_release(self):
         return self.filter(pre_release=True)
@@ -44,8 +50,10 @@ class ReleaseManager(Manager.from_queryset(ReleaseQuerySet)):
         else:
             return None
 
-    def latest_python3(self):
-        qs = self.get_queryset().latest_python3()
+    def latest_python3(self, major_version='', *, with_binaries=True):
+        qs = self.get_queryset().latest_python3(
+            major_version, with_binaries=with_binaries
+        )
         if qs:
             return qs[0]
         else:

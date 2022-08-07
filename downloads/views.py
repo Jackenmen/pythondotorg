@@ -27,8 +27,11 @@ class DownloadLatestPython3(RedirectView):
     permanent = False
 
     def get_redirect_url(self, **kwargs):
+        with_binaries = bool(self.kwargs['with_binaries'])
         try:
-            latest_python3 = Release.objects.latest_python3()
+            latest_python3 = Release.objects.latest_python3(
+                self.kwargs['major_version'], with_binaries=with_binaries
+            )
         except Release.DoesNotExist:
             latest_python3 = None
 
